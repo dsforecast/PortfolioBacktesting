@@ -1,2 +1,2 @@
 # Portfolio Backtesting
-Collection of function to backtest portfolio and asset management strategies
+Collection of function to backtest portfolio and asset management strategies in python
