@@ -4,11 +4,11 @@ Created on Mon Oct  4 15:42:42 2021
 
 @author: Frey
 """
-# In[Portfolio Allocation Backtest]: 
-5
-# In[Load Libararies]: 
+# In[Portfolio Allocation Backtest]:
 
-import datetime as dt  
+# In[Load Libararies]:
+
+import datetime as dt
 import warnings
 import time
 import matplotlib.pyplot as plt
@@ -38,31 +38,36 @@ DATA_PATH = PATH + '\\data\\'
 RESULTS_PATH = PATH + '\\results\\'
 PB = PortfolioBacktest()
 
-# In[Settings]: 
+# In[Settings]:
 
 PB.settings['data_set'] = '5_Industry'
 PB.settings['path'] = PATH
 PB.settings['data_path'] = DATA_PATH
 PB.settings['results_path'] = RESULTS_PATH
-PB.settings['plot_style_type'] = '.png'
-
 
 # settings for optimization
-PB.settings['opt_method'] = 12
+PB.settings['opt_method'] = [0, 1, 2, 3]#, 4, 5, 6]#, 7, 8, 9, 10, 11]
 PB.settings['lower'] = 0.0
 PB.settings['upper'] = 0.1
+PB.settings['risk_aversion'] = 1
 
 # backtest settings
-PB.settings['start_date'] = '20000101'
+PB.settings['start_date'] = '20110101'
 PB.settings['end_date'] = '20211231'
 PB.settings['rebalancing_period'] = 'months'
-PB.settings['rebalancing_frequency'] = 6
-PB.settings['costs'] = 0.0005
+PB.settings['rebalancing_frequency'] = 1
+PB.settings['costs'] = 0.005
 PB.settings['min_weight_change'] = 0.0
-PB.settings['window'] = 120
-PB.settings['length_year'] = 250
-PB.settings['plot'] = True
+PB.settings['window'] = 60
+PB.settings['length_year'] = 12
+PB.settings['plot'] = False
+PB.settings['plot_perfromance_years'] = False
+PB.settings['plot_style_type'] = '.png'
+PB.settings['number_simulations'] = 100
 PB.settings['update_data'] = False
 
-# In[Backtest]: 
+# In[Backtest]:
 BACKTEST = PB.backtest()
+
+# In[End of Script]:
+print('\n The code execution finished in %s seconds.' % round(time.time() - TIC,1))
