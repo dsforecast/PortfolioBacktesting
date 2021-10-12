@@ -1,0 +1,34 @@
+def total_measures(returns, names, length_year):
+    '''
+    total_measures: Calculate total performance measures for returns
+    '''    
+    totals = pd.DataFrame(index = ['TotalReturn', 'MeanReturn', 'Volatility', 'MDD', 'Sharpe', 'Calmar', 'Skewness', 'Kurtosis', 'CaptureRatio'], columns = returns.columns)
+    totals.loc['TotalReturn',:] = (((1+returns).cumprod(axis=0).tail(1)-1)*100).values
+    totals.loc['MeanReturn',:] = (returns.mean(axis=0)*length_year*100).values
+    totals.loc['Volatility',:] = -((returns.std(axis=0)*length_year**.5)*100).values
+    totals.loc['MDD',:] = mdd(returns).values   
+    totals.loc['Sharpe',:] = [(totals.loc['MeanReturn',i] / totals.loc['Volatility',i]) if totals.loc['Volatility',i] != 0 else 0 for i in totals.columns]
+    totals.loc['Calmar',:] = [(totals.loc['MeanReturn',i] / totals.loc['MDD',i]) if totals.loc['MDD',i] != 0 else 0 for i in totals.columns]
+    totals.loc['Skewness',:] = ((returns.skew(axis=0)*length_year**.5)*100).values
+    totals.loc['Kurtosis',:] = ((returns.kurt(axis=0)*length_year**.5)*100).values
+    totals.loc['CaptureRatio',:] = [ capture_ratio(pd.concat([returns.iloc[:,0], returns.iloc[:,i[0]]], axis=1)) for i in enumerate(totals.columns)]
+    for i in enumerate(totals.index):
+        totals.loc[i[1],:] = round((totals.loc[i[1],:].astype(float)), 2)
+    return totals
+
+def capture_ratio(data):
+    '''
+    capture_ratio: calculate return ratio upside to downside betwenn bm and strat
+    '''
+    data.columns = ['benchmark', 'strat']
+    def calculate_ratio(returns):
+        '''
+        calculate_ratio: calculate return ratio betwenn bm and strat
+        '''
+        multiplier = abs(returns.loc[:,'benchmark'])/abs(returns.loc[:,'benchmark']).sum() 
+        ratio = (returns.loc[:,'strat']/returns.loc[:,'benchmark'])
+        ratio = (ratio*multiplier).sum()
+        return ratio
+    ratio_upside = calculate_ratio(data.loc[data.loc[:,'benchmark']>0])
+    ratio_downside = calculate_ratio(data.loc[data.loc[:,'benchmark']<0])
+    return float(ratio_upside / ratio_downside)
