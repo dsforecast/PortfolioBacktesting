@@ -1,0 +1,5 @@
+# Exclude all files in the results/*/plots folders
+results/*/plots/
+
+# Allow all other files in results
+!results/**
