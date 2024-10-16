@@ -1,0 +1,12 @@
+cvxpy
+matplotlibc
+numpy
+openpyxl
+pandas
+pandas-datareader
+scikit-learn
+scipy
+spyder-kernels==2.5.*
+tqdm
+Jinja2
+seaborn

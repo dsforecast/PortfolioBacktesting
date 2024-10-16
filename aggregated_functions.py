@@ -8,33 +8,50 @@ Created on Mon Oct  4 15:31:14 2021
 import pandas as pd
 import numpy as np
 import math
-from scipy.stats import truncnorm
+from scipy.stats import truncnorm, norm, f
 from scipy.special import betainc
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
+def shift_intervall(data, lower_bound, upper_bound):
+    '''
+    Parameters
+    ----------
+    data : array, float
+    lower_bound : float
+    upper_bound : float
+    Returns
+    -------
+    shifted_data : array, float
+        data shifted to intervall [lower_bound, upper_bound]
+    '''
+    a, b = data.min(), data.max()
+    c, d = lower_bound, upper_bound
+    shifted_data = data.copy()
+    if any(shifted_data<0):
+        shifted_data = c + (d - c) / (b - a) * (shifted_data - a) #c + (d - c) / ((b - a) * (a < b) + (a >= b)) * (data - a)
+    return shifted_data
 
 def mdd(data):
     ''' mdd: Returns maximum drawdown for return series
     '''
     try:
-        # i = (np.maximum.accumulate(data)-data).values.argmax()
-        # j = (data[:i]).values.argmax()
-        # mdd0 = data.iloc[j]-data.iloc[i]
-        mdd0 = -np.min((1+data).cumprod(axis=0)/(1+data).cumprod(axis=0).cummax(axis=0)-1,axis=1)
+        mdd0 = -np.min((1+data).cumprod(axis=0)/(1+data).cumprod(axis=0).cummax(axis=0)-1,axis=0)
     except (RuntimeError, ValueError, TypeError, NameError, IndexError):
         mdd0 = 0
     return mdd0
 def annual_measures(returns):
     ''' annual_measures: Returns annual performance measures for return series
     '''
-    length_year = 252
-    returns = returns.dropna()
+    returns = returns#.dropna()
     all_years = [x for x in range(returns.index[0].year, returns.index[-1].year+1, 1)]
     annuals = np.zeros((len(all_years), 6))
     for i in enumerate(all_years):
         annuals[i[0], 0] = ((1+returns[str(i[1])]).cumprod().tail(1)-1)*100
-        annuals[i[0], 1] = returns[str(i[1])].mean()*length_year*100
-        annuals[i[0], 2] = (returns[str(i[1])].std()*length_year**.5)*100
-        annuals[i[0], 3] = mdd(returns[str(i[1])])*100
+        annuals[i[0], 1] = returns[str(i[1])].mean()*100
+        annuals[i[0], 2] = returns[str(i[1])].std()*100
+        annuals[i[0], 3] = mdd(returns[str(i[1])].T)*100
         annuals[i[0], 4] = annuals[i[0], 1]/annuals[i[0], 2]
         annuals[i[0], 5] = annuals[i[0], 1]/annuals[i[0], 3]
     annuals = pd.DataFrame(annuals)
@@ -50,41 +67,22 @@ def total_measures(returns, length_year, gamma):
     totals.loc['TotalReturn',:] = (((1+returns).cumprod(axis=0).tail(1)-1)*100).values
     totals.loc['MeanReturn',:] = (returns.mean(axis=0)*length_year*100).values
     totals.loc['Volatility',:] = ((returns.std(axis=0)*length_year**.5)*100).values
-    totals.loc['MDD',:] = mdd(returns.T) * 100
+    totals.loc['MDD',:] = mdd(returns) * 100
     totals.loc['Sharpe',:] = [(totals.loc['MeanReturn',i] / totals.loc['Volatility',i]) if totals.loc['Volatility',i] != 0 else 0 for i in totals.columns]
     totals.loc['Calmar',:] = [(totals.loc['MeanReturn',i] / totals.loc['MDD',i]) if totals.loc['MDD',i] != 0 else 0 for i in totals.columns]
     totals.loc['Skewness',:] = ((returns.skew(axis=0)*length_year**.5)*100).values
     totals.loc['Kurtosis',:] = ((returns.kurt(axis=0)*length_year**.5)*100).values
     totals.loc['Return Loss'] = totals.loc['Volatility',:].mul(totals.loc['Sharpe','1/N'],axis=0) - totals.loc['MeanReturn',:]
     totals.loc['Certainty Equivalent'] = totals.loc['MeanReturn',:] - gamma/2 * totals.loc['Volatility',:]
-    for i in enumerate(totals.index):
-        totals.loc[i[1],:] = round((totals.loc[i[1],:].astype(float)), 2)
     return totals
-
-def capture_ratio(data):
-    '''
-    capture_ratio: calculate return ratio upside to downside betwenn bm and strat
-    '''
-    data.columns = ['benchmark', 'strat']
-    def calculate_ratio(returns):
-        '''
-        calculate_ratio: calculate return ratio betwenn bm and strat
-        '''
-        multiplier = abs(returns.loc[:,'benchmark'])/abs(returns.loc[:,'benchmark']).sum()
-        ratio = (returns.loc[:,'strat']/returns.loc[:,'benchmark'])
-        ratio = (ratio*multiplier).sum()
-        return ratio
-    ratio_upside = calculate_ratio(data.loc[data.loc[:,'benchmark']>0])
-    ratio_downside = calculate_ratio(data.loc[data.loc[:,'benchmark']<0])
-    return float(ratio_upside / ratio_downside)
 
 def turnover_measures(allocation, dates):
     ''' turnover_measures: Returns turnover measures for allocation
     '''
-    # annual turnover
-    allocation = allocation.dropna()
+    # annual 
     weight_change = abs(allocation-allocation.shift()).sum(axis=1)
     weight_change[0] = 1
+        
     tmp_to = []
     for i in enumerate(dates):
         tmp_to.append(weight_change[dates[i[0]]]*100)
@@ -93,38 +91,10 @@ def turnover_measures(allocation, dates):
     annual_turnover['year'] = pd.to_datetime(annual_turnover['dates'], format = '%Y-%m-%d').dt.strftime('%Y')
     annual_turnover = annual_turnover.groupby(['year']).sum()
     # turnover
-    turnover_new = pd.DataFrame(index=allocation.index, columns=allocation.columns).fillna(0)
-    turnover_new[allocation!=0]=1
-    diff_turnover_new=turnover_new.diff()
-    diff_turnover_new.iloc[0,:] = turnover_new.iloc[0,:]
-    turnover_news = (diff_turnover_new==1).astype(int).sum(axis=1).replace(to_replace=0, method='ffill')
-    turnover_olds = (diff_turnover_new==-1).astype(int).sum(axis=1).replace(to_replace=0, method='ffill')
-    turnover_prob = (turnover_news + turnover_olds)/turnover_new.astype(int).sum(axis=1)*100
-    turnover_prob = turnover_prob.where(~turnover_prob.duplicated(),0)[:-1]
-    turnover_news = turnover_news[1:]
-    turnover_olds = turnover_olds[1:]
     turnover = allocation - allocation.shift(1)
     turnover.dropna(how='all', inplace=True)
     turnover.fillna(value=0, inplace=True)
-    turnover_value = turnover.abs().sum(axis=1)
-    turnover_count = turnover.copy()
-    turnover_count[turnover_count != 0] = 1
-    turnover_count = turnover_count.sum(axis=1)
-    turnover_count_in = turnover.copy()
-    turnover_count_in[turnover_count_in > 0] = 1
-    turnover_count_in = round(turnover_count_in.sum(axis=1))
-    turnover_count_out = turnover.copy()
-    turnover_count_out[turnover_count_out < 0] = 1
-    turnover_count_out = round(turnover_count_out.sum(axis=1))
-    allocation.dropna(how='all', inplace=True)
-    turnover_constituents = allocation.div(allocation).fillna(0).sum(axis=1)#pd.Series(np.count_nonzero(allocation, axis=1))
-    turnover_constituents = turnover_constituents[turnover_value.index] #turnover_constituents[1:]
-    turnover_constituents.index = turnover_value.index
-
-    turnover = pd.concat([turnover_value, turnover_count, turnover_count_in,\
-                          turnover_count_out, turnover_constituents, turnover_news, turnover_olds, turnover_prob], axis=1)
-    turnover.columns = ['turnover_value', 'turnover_count', 'turnover_count_in',\
-                        'turnover_count_out', 'turnover_constituents', 'turnover_news', 'turnover_olds', 'turnover_prob']
+    turnover = turnover.abs().sum(axis=1)
     return turnover, annual_turnover
 
 def hierarchical_ridge(y,X,B):
@@ -172,7 +142,7 @@ def hierarchical_ridge(y,X,B):
     b0 = np.zeros([N, 1])
     v0 = 0.0001
     v1 = T/2 + v0/2
-    s0 = 0.1 # IG_2(a,b) = IG(a/2,b/2)
+    s0 = 1#1.1 # IG_2(a,b) = IG(a/2,b/2)
     q1 = 0.0001
     q2 = 0.0001
 
@@ -210,7 +180,7 @@ def hierarchical_ridge(y,X,B):
 
     return beta, sigma, tau
 
-def bayesian_lasso(y,X,B):
+def bayesian_lasso(y,X,B, r=0.0001, delta=0.0001):
     '''
     Parameters
     ----------
@@ -251,8 +221,8 @@ def bayesian_lasso(y,X,B):
     lambdaD = 0.1
 
     # Further hyperparameters
-    r = 0.001
-    delta = 0.001
+    # r = 0.001
+    # delta = 0.001
 
     # MCMC
     for i in range(_ndraw):
@@ -600,6 +570,9 @@ def frahm_memmel(returns, kappa_method):
 
     # Dimensions
     T, N = returns.shape
+    
+    if T <= N:
+        return np.full((N,), np.nan)
 
     # Parameter Calculations
     Sigma = np.cov(returns.T)
@@ -642,6 +615,9 @@ def tou_zhou(returns, gamma):
 
     # Dimensions
     T, N = returns.shape
+    
+    if T <= N:
+        return np.full((N,), np.nan)
 
     # Parameter Calculations
     Sigma = np.cov(returns.T)
@@ -680,20 +656,387 @@ def fama_french(returns, factors):
     '''
     # Array structure
     returns = np.array(returns)
-    factors = np.array(factors)[:,:5]
+    factors = np.array(factors.iloc[:,:-1])
 
     # Dimensions
     T, N = returns.shape
 
     # Parameter Calculations
-    y = np.mean(returns, axis=1)[:, np.newaxis]
+    y = returns
     x = factors
     b = np.linalg.pinv(x.T.dot(x)).dot(x.T.dot(y))
     res = y - x @ b
-    Sigma = b @ (np.cov(factors.T) @ b).T + np.cov(res.T) * np.eye(N)
+    Sigma = b.T @ (np.cov(factors.T) @ b) + np.cov(res.T) * np.eye(N)
     invSigma = np.linalg.pinv(Sigma)
 
     # Portfolio Weights
     weights = invSigma @ np.ones([N,1]) / (np.ones([N,1]).T @ invSigma @ np.ones([N,1]))
 
     return weights
+
+
+# In[Latex Output]
+
+# Function to assign asterisks based on p-values
+def add_asterisks(p):
+    thresholds = [(0.01, '***'), (0.05, '**'), (0.1, '*')]
+    for threshold, symbol in thresholds:
+        if p <= threshold:
+            return symbol
+    return ''
+
+# Function to get the value to highlight (max, min, or mid)
+def get_highlight_value(s, highlight_type):
+    if highlight_type == 'max':
+        return s.max()
+    elif highlight_type == 'min':
+        return s.min()
+    elif highlight_type == 'mid':
+        return s.median()  # Mid value is considered the median
+    else:
+        raise ValueError("Invalid highlight_type. Use 'max', 'min', or 'mid'.")
+        
+# Function to apply \textbf{} to column headers only
+def boldify_headers(df):
+    df_bold = df.copy()
+    
+    # Apply bold formatting to columns (MultiIndex if applicable)
+    if isinstance(df_bold.columns, pd.MultiIndex):
+        # Rebuild the MultiIndex with bold formatting applied to all levels
+        df_bold.columns = pd.MultiIndex.from_tuples(
+            [tuple(f"\\textbf{{{level}}}" for level in col) for col in df_bold.columns]
+        )
+    else:
+        df_bold.columns = [f"\\textbf{{{col}}}" for col in df_bold.columns]
+
+    return df_bold
+
+# Function to apply formatting, bold for max, and asterisks based on p-values
+def highlight_max_with_pvals(df, pvals=None, highlight_type='max', decimal_format='.2f', bold=False):
+    # If pvals is not provided, set it to a DataFrame of ones with the same shape as df
+    if pvals is None:
+        pvals = pd.DataFrame(1, columns=df.columns, index=df.index)
+    
+    # # Function to format each column
+    # def format_column(s, pvals_col):
+    #     highlight_val = get_highlight_value(s, highlight_type)  # Get value to highlight (max, min, or mid)
+
+    #     formatted_values = []
+        
+    #     for v, p in zip(s, pvals_col):
+    #         value_str = f"{v:{decimal_format}}{add_asterisks(p)}"  # Apply decimal format and asterisks
+    #         if v == highlight_val:  # Bold the maximum value
+    #             value_str = f"\\cellcolor{{gray!30}}\\textbf{{{value_str}}}"
+    #         formatted_values.append(value_str)
+        
+    #     return formatted_values
+    
+    # Function to create shading based on rank
+    def format_column(s, pvals_col):
+        
+        highlight_val = get_highlight_value(s, highlight_type)  # Get value to highlight (max, min, or mid)
+        if highlight_type == 'max':
+            ranks = s.rank(ascending=False, numeric_only=True)  # Get the rank of values in the column
+        else:
+            ranks = s.rank(ascending=True, numeric_only=True)
+        max_rank = len(s)  # Maximum possible rank
+        
+        formatted_values = []
+    
+        for v, r, p in zip(s, ranks, pvals_col):
+            # Calculate the intensity of the shading (higher rank = darker shade)
+            if np.isnan(r):
+                r = max_rank
+            # if highlight_type == 'max':
+            shade_intensity = int((1-r/max_rank) * 50)  # Scale rank to 0-90 for gray! shading
+            # else:
+            #     shade_intensity = int((r/max_rank) * 50)  # Scale rank to 0-90 for gray! shading
+            value_str = f"{v:{decimal_format}}{add_asterisks(p)}"  # Apply decimal format and asterisks
+            
+            if v == highlight_val:  # Bold the maximum value
+                value_str = f"\\textbf{{{value_str}}}"
+            
+            # Apply cell shading based on the rank
+            value_str = f"\\cellcolor{{gray!{shade_intensity}}}{value_str}"
+            formatted_values.append(value_str)
+        
+        return formatted_values
+    
+    return_df = pd.DataFrame({col: format_column(df[col], pvals[col]) for col in df.columns}, index=df.index)
+    if bold:
+        return_df = boldify_headers(return_df)    
+    return_df.columns.names =df.columns.names
+        
+    return return_df
+
+
+# In[Testing]
+
+
+def test_SR(returns):
+    """Perfomr SR-test for equal Sharpe ratios."""
+    r1=returns.iloc[:, 0]
+    r2=returns.iloc[:, 1]
+    
+    # Compute the means
+    mu1 = np.mean(r1)
+    mu2 = np.mean(r2)
+    
+    # Compute the covariance matrix
+    Sigma = np.cov(r1, r2)
+    
+    sigma1 = np.sqrt(Sigma[0, 0])
+    sigma2 = np.sqrt(Sigma[1, 1])
+    sigma12 = Sigma[0, 1]
+    
+    # Compute theta
+    theta = (2*sigma1**2*sigma2**2-2*sigma1*sigma2*sigma12
+             +.5*mu1**2*sigma2**2+.5*mu2**2*sigma1**2
+             -mu1*mu2/(sigma1*sigma2)*sigma12**2
+             )
+    
+    # Compute the Jackknife statistic zjk
+    test_statistic = ((sigma2 * mu1 - sigma1 * mu2)
+                      / np.maximum(np.finfo(float).eps, np.sqrt(theta))
+                      )
+    
+    p_value = norm.cdf(test_statistic)
+    return p_value
+    
+    
+def test_SD(returns):
+    """Perfomr F-test for equal variances."""
+
+    T = returns.shape[0]
+    # Calculate the sample variances
+    var1 = np.var(returns.iloc[:, 0], ddof=1)
+    var2 = np.var(returns.iloc[:, 0], ddof=1)
+
+    # F-statistic: ratio of variances (larger variance in the numerator)
+    f_stat = var1 / var2
+    
+    # Degrees of freedom
+    df1 = df2 = T - 1
+
+    # Compute the one-tailed p-value (right tail, variance1 > variance2)
+    p_value = 1 - f.cdf(f_stat, df1, df2)
+
+    return p_value
+
+
+def test_CE(risk_aversion, returns):
+    """
+    Purpose: Delta method for CE test
+    
+    Input:
+    risk_aversion_gamma = gamma parameter (risk aversion)
+    returns = Tx2 matrix of out-of-sample portfolio returns
+    
+    Output:
+    pvalue = p-value for t-test
+    
+    Note: CE difference is computed for returns[:, 0] - returns[:, 1]
+    """
+
+    # Separate the returns into two portfolios
+    returns_1 = returns.iloc[:, 0]
+    returns_2 = returns.iloc[:, 1]
+
+    # Derivative vector based on the CE difference and gamma parameter
+    derivative_vector = np.array([1, -1, -risk_aversion/2, risk_aversion/2])
+
+    # Number of observations (time periods)
+    num_observations = len(returns_1)
+
+    # Covariance matrix and its components
+    covariance_matrix = np.cov(returns_1, returns_2)
+    sigma12 = covariance_matrix[0, 1]
+    sigma11 = covariance_matrix[0, 0]
+    sigma22 = covariance_matrix[1, 1]
+
+    # Standard error calculation
+    covariance_structure_matrix = np.array(
+        [[sigma11, sigma12, 0, 0], [sigma12, sigma22, 0, 0],
+         [0, 0, 2 * sigma11**2, 2 * sigma12**2],
+         [0, 0, 2 * sigma12**2, 2 * sigma22**2]])
+    
+    standard_error = np.sqrt((derivative_vector.T @ covariance_structure_matrix
+                              @ derivative_vector) / num_observations)
+
+    # CE difference (certainty equivalent difference)
+    ce_difference = (np.mean(returns_1) - np.mean(returns_2) - 
+                     (risk_aversion/2) * (np.var(returns_1)
+                                          - np.var(returns_2)))
+
+    # Test statistic and p-value
+    test_statistic = ce_difference / standard_error
+    p_value = norm.cdf(test_statistic)
+
+    return p_value
+
+
+def ce(x, risk_aversion=1, axis=1):
+    return np.mean(x, axis=axis) - np.var(x, axis=axis)/2
+
+def sharpe(x, axis=1):
+    return np.mean(x, axis=axis)/np.std(x, axis=axis)
+
+
+def test_statistic_bootstrap(returns, number_simulations=1000,
+                             statistic=np.mean, block_size=10, seed=None):
+    """Calculate bootstrapped p-values for differences in test statistic"""
+    p = 1 / block_size
+    T = returns.shape[0]
+    bootstrap_samples = pd.DataFrame(index=range(number_simulations),
+                                     columns=[returns.columns]
+                                     )
+    for i in range(number_simulations):
+        starting_point = np.random.randint(0, T, block_size)
+        block_length = np.random.geometric(p=p, size=block_size)
+        current_bootstrap_sample = pd.DataFrame()
+        curr_indices = pd.DataFrame()
+        for ii in range(block_size):
+            if len(current_bootstrap_sample) > block_size:
+                break
+            else:
+                start_index = starting_point[ii]
+                end_index = min(start_index + block_length[ii], T)
+                index_range = pd.DataFrame(np.arange(start_index, end_index))
+                current_part_sample = returns[start_index:end_index]
+                current_bootstrap_sample = pd.concat(
+                    [current_bootstrap_sample, current_part_sample], axis=0)
+                curr_indices = pd.concat([curr_indices, index_range], axis=0)
+        cutoff = len(current_bootstrap_sample) - block_size
+        if cutoff > 0:
+            current_bootstrap_sample = current_bootstrap_sample[:-cutoff]
+            curr_indices = curr_indices[:-cutoff]
+        if hasattr(statistic(current_bootstrap_sample, axis=0), "values"):
+            bootstrap_samples.loc[i, returns.columns] = statistic(current_bootstrap_sample, axis=0).values
+        else:
+            bootstrap_samples.loc[i, returns.columns] = statistic(current_bootstrap_sample, axis=0)
+        
+        bootstrap_samples = bootstrap_samples.astype(float)
+
+    # compute statistic(dataset1) - statistic(dataset2)
+    results = - bootstrap_samples.diff(axis=1).iloc[:,-1]
+    
+    p_value = np.mean(results.values<0)
+
+    # returnp_value
+    return p_value
+    
+
+def plot_normalized_heatmap(data, normalize_by='row', annot_format=".2f", **kwargs):
+    """
+    Plots a heatmap with normalized colors per row or column, but annotations show the original values.
+    
+    Parameters:
+    - data: pd.DataFrame, input data for the heatmap.
+    - normalize_by: 'row' or 'column', the axis to normalize by.
+    - kwargs: additional keyword arguments for seaborn.heatmap.
+    """
+    if normalize_by == 'row':
+        norm_data = data.apply(lambda x: (x - x.min()) / (x.max() - x.min()), axis=1)
+    elif normalize_by == 'column':
+        norm_data = data.apply(lambda x: (x - x.min()) / (x.max() - x.min()), axis=0)
+    else:
+        raise ValueError("normalize_by should be either 'row' or 'column'")
+        
+    # Plot heatmap with normalized colors but original annotations
+    fig = plt.figure()
+    plt.grid(False)
+    plt.gca().xaxis.set_ticks_position('top') 
+    plt.gca().xaxis.set_label_position('top')
+    sns.heatmap(norm_data, linewidth=1, annot=data, fmt=annot_format, cbar=False, xticklabels=True, yticklabels=True, **kwargs)
+    plt.xticks(rotation=20, ha='left')
+    plt.autoscale(enable=True, axis='x', tight=True)
+    # plt.show()
+
+# test_statistic_bootstrap(returns, number_simulations=1000, statistic=np.mean, block_size=10, seed=None)
+# test_statistic_bootstrap(returns, number_simulations=1000, statistic=np.std, block_size=100, seed=None)
+# test_statistic_bootstrap(returns, number_simulations=1000, statistic=sharpe, block_size=10, seed=None)
+
+
+# # Example return series (replace with your actual data)
+# series1 = returns.iloc[:, 0]
+# series2 = returns.iloc[:, 1]
+
+# # Function to compute variance difference
+# def compute_variance_difference(s1, s2):
+#     return np.var(s1, ddof=1) - np.var(s2, ddof=1)
+
+# # Stationary bootstrap resampling
+# def stationary_bootstrap(series, p, size=None):
+#     """ 
+#     Perform stationary bootstrap.
+    
+#     series: Original time series
+#     p: Probability of starting a new block
+#     size: Length of the bootstrap sample
+#     """
+#     n = len(series)
+#     if size is None:
+#         size = n
+        
+#     indices = np.zeros(size, dtype=int)
+#     indices[0] = np.random.randint(0, n)
+    
+#     for i in range(1, size):
+#         if np.random.rand() < p:
+#             # Start a new block
+#             indices[i] = np.random.randint(0, n)
+#         else:
+#             # Continue the current block
+#             indices[i] = (indices[i-1] + 1) % n
+    
+#     return series[indices]
+
+# # Observed difference in variances
+# observed_diff = compute_variance_difference(series1, series2)
+
+# # Stationary bootstrap procedure
+# def stationary_bootstrap_variance_test(s1, s2, num_bootstrap=1000, p=0.1):
+#     """
+#     Perform a bootstrap test for the difference in variances using stationary bootstrap.
+    
+#     s1, s2: Original time series
+#     num_bootstrap: Number of bootstrap resamples
+#     p: Probability of starting a new block in stationary bootstrap
+#     """
+#     n1, n2 = len(s1), len(s2)
+    
+#     bootstrap_diffs = []
+    
+#     for _ in range(num_bootstrap):
+#         # Perform stationary bootstrap on both series
+#         resampled1 = stationary_bootstrap(s1, p, size=n1)
+#         resampled2 = stationary_bootstrap(s2, p, size=n2)
+        
+#         # Compute the difference in variances for the resampled data
+#         bootstrap_diff = compute_variance_difference(resampled1, resampled2)
+#         bootstrap_diffs.append(bootstrap_diff)
+    
+#     bootstrap_diffs = pd.Series(bootstrap_diffs).values
+#     # Compute the p-value: proportion of bootstrap samples with a difference in variances
+#     # greater than or equal to the observed difference
+#     p_value = np.mean(bootstrap_diffs<0)
+    
+#     return observed_diff, p_value, bootstrap_diffs
+
+# # Run the stationary bootstrap test
+# observed_diff, p_value, bootstrap_diffs = stationary_bootstrap_variance_test(series1, series2)
+
+# # Results
+# print(f"Observed difference in variances: {observed_diff}")
+# print(f"P-value from stationary bootstrap test: {p_value}")
+
+# # Conclusion
+# alpha = 0.05
+# if p_value < alpha:
+#     print("Reject the null hypothesis. The variances are significantly different.")
+# else:
+#     print("Fail to reject the null hypothesis. No significant difference in variances.")
+
+
+
+
