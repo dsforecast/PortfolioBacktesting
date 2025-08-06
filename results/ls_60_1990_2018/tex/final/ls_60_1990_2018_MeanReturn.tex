@@ -1,0 +1,29 @@
+\begin{table}[p]
+\fontsize{9}{14}\selectfont{
+\caption{Out-of-sample mean results (in percent) for the portfolio return relative to the 1/N portfolio using various data sets with h = 60 months estimation window size for a long-short portfolio with rebalancing after 1 period. The evaluation sample is from January 1990 to December 2018.
+\vspace{0.3em}}
+\label{tab:ls_60_1990_2018_MeanReturn}
+\begin{tabularx}{\textwidth}{Xcccccccc}
+\toprule
+Vendor & \multicolumn{4}{c}{\textbf{Fama French}} & \multicolumn{4}{c}{\textbf{Refinitiv}} \\
+\cmidrule(r{0.1em}l){2-5}\cmidrule(r{0.1em}l){6-9}
+Dataset & \multicolumn{3}{c}{\textbf{Industry}} & \textbf{Size to B/M} & \multicolumn{4}{c}{\textbf{NYSE Exchange}} \\
+\cmidrule(r{0.1em}l){2-4}\cmidrule(r{0.1em}l){5-8}
+Asset Universe & \textbf{5} & \textbf{30} & \textbf{49} & \textbf{100} & \textbf{25} & \textbf{100} & \textbf{250} & \textbf{500} \\
+\midrule
+\textbf{1/N} & \cellcolor{gray!45}\textbf{11.1} & \cellcolor{gray!45}\textbf{10.6} & \cellcolor{gray!43}\textbf{10.9} & \cellcolor{gray!45}\textbf{11.9} & \cellcolor{gray!45}\textbf{8.7} & \cellcolor{gray!45}\textbf{9.4} & \cellcolor{gray!45}\textbf{11.1} & \cellcolor{gray!45}\textbf{12.6} \\
+\textbf{GMVP} & \cellcolor{gray!9}8.2 & \cellcolor{gray!0}-1.7 & \cellcolor{gray!0}-27.0 & \cellcolor{gray!13}-2.1 & \cellcolor{gray!0}1.6 & \cellcolor{gray!13}-5.1 & \cellcolor{gray!22}3.9 & \cellcolor{gray!22}7.0 \\
+\textbf{Empirical Bayes} & \cellcolor{gray!40}10.8 & \cellcolor{gray!40}10.5 & \cellcolor{gray!36}10.6 & \cellcolor{gray!0}nan & \cellcolor{gray!40}8.7 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{Ridge} & \cellcolor{gray!31}10.7 & \cellcolor{gray!22}9.2 & \cellcolor{gray!22}8.9 & \cellcolor{gray!36}11.7 & \cellcolor{gray!27}7.8 & \cellcolor{gray!36}8.2 & \cellcolor{gray!36}9.2 & \cellcolor{gray!36}10.0 \\
+\textbf{Lasso} & \cellcolor{gray!4}8.1 & \cellcolor{gray!13}5.6 & \cellcolor{gray!18}5.0 & \cellcolor{gray!18}5.4 & \cellcolor{gray!9}5.9 & \cellcolor{gray!22}4.2 & \cellcolor{gray!13}3.1 & \cellcolor{gray!13}4.8 \\
+\textbf{Elastic Net} & \cellcolor{gray!13}8.2 & \cellcolor{gray!9}5.4 & \cellcolor{gray!13}5.0 & \cellcolor{gray!22}6.0 & \cellcolor{gray!13}6.2 & \cellcolor{gray!18}4.1 & \cellcolor{gray!18}3.4 & \cellcolor{gray!18}5.0 \\
+\textbf{Truncted Normal} & \cellcolor{gray!27}10.5 & \cellcolor{gray!31}9.9 & \cellcolor{gray!31}10.0 & \cellcolor{gray!40}11.7 & \cellcolor{gray!31}8.1 & \cellcolor{gray!40}8.9 & \cellcolor{gray!40}10.7 & \cellcolor{gray!40}12.3 \\
+\textbf{LW} & \cellcolor{gray!22}9.6 & \cellcolor{gray!18}5.7 & \cellcolor{gray!9}4.1 & \cellcolor{gray!27}7.7 & \cellcolor{gray!4}5.7 & \cellcolor{gray!27}5.0 & \cellcolor{gray!27}5.5 & \cellcolor{gray!27}7.5 \\
+\textbf{FM} & \cellcolor{gray!18}8.5 & \cellcolor{gray!36}10.4 & \cellcolor{gray!43}\textbf{10.9} & \cellcolor{gray!0}nan & \cellcolor{gray!36}8.1 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{TZ} & \cellcolor{gray!36}10.8 & \cellcolor{gray!27}9.6 & \cellcolor{gray!27}9.0 & \cellcolor{gray!0}nan & \cellcolor{gray!22}7.0 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{FF} & \cellcolor{gray!0}7.3 & \cellcolor{gray!4}5.1 & \cellcolor{gray!4}4.1 & \cellcolor{gray!31}7.7 & \cellcolor{gray!18}6.8 & \cellcolor{gray!31}6.0 & \cellcolor{gray!31}6.9 & \cellcolor{gray!31}8.0 \\
+\bottomrule
+\end{tabularx}
+\vspace{0.3em}
+{\footnotesize \textit{Note:} The table reports out-of-sample mean results (in percent) for the portfolio return for various data sets in a rolling window one-step ahead long-short portfolio optimization. For all datasets, portfolio returns are net of transaction costs 50 basis points per trade. The bold number in each column indices the largest value in each column. For the Refinitive data, we follow the methodology of \citet{denard2022} in section 5.2 on page 7, and choose the assets with the highest market capitalization while excluding assets with pairwise correlations higher than 0.95. }}
+\end{table}

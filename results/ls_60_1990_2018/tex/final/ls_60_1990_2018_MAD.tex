@@ -1,0 +1,29 @@
+\begin{table}[p]
+\fontsize{9}{14}\selectfont{
+\caption{Out-of-sample mean results (in percent) for the mean absolute weight deviations relative to the 1/N portfolio using various data sets with h = 60 months estimation window size for a long-short portfolio with rebalancing after 1 period. The evaluation sample is from January 1990 to December 2018.
+\vspace{0.3em}}
+\label{tab:ls_60_1990_2018_MAD}
+\begin{tabularx}{\textwidth}{Xcccccccc}
+\toprule
+Vendor & \multicolumn{4}{c}{\textbf{Fama French}} & \multicolumn{4}{c}{\textbf{Refinitiv}} \\
+\cmidrule(r{0.1em}l){2-5}\cmidrule(r{0.1em}l){6-9}
+Dataset & \multicolumn{3}{c}{\textbf{Industry}} & \textbf{Size to B/M} & \multicolumn{4}{c}{\textbf{NYSE Exchange}} \\
+\cmidrule(r{0.1em}l){2-4}\cmidrule(r{0.1em}l){5-8}
+Asset Universe & \textbf{5} & \textbf{30} & \textbf{49} & \textbf{100} & \textbf{25} & \textbf{100} & \textbf{250} & \textbf{500} \\
+\midrule
+\textbf{1/N} & \cellcolor{gray!45}\textbf{0.02} & \cellcolor{gray!45}\textbf{0.03} & \cellcolor{gray!43}\textbf{0.03} & \cellcolor{gray!45}\textbf{0.02} & \cellcolor{gray!43}\textbf{0.99} & \cellcolor{gray!45}\textbf{0.95} & \cellcolor{gray!45}\textbf{0.87} & \cellcolor{gray!45}\textbf{0.74} \\
+\textbf{GMVP} & \cellcolor{gray!4}2.20 & \cellcolor{gray!0}5.40 & \cellcolor{gray!0}11.32 & \cellcolor{gray!13}11.92 & \cellcolor{gray!0}3.07 & \cellcolor{gray!13}5.37 & \cellcolor{gray!13}3.15 & \cellcolor{gray!13}2.51 \\
+\textbf{Empirical Bayes} & \cellcolor{gray!40}0.24 & \cellcolor{gray!40}0.11 & \cellcolor{gray!36}0.14 & \cellcolor{gray!0}nan & \cellcolor{gray!43}\textbf{0.99} & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{Ridge} & \cellcolor{gray!36}0.58 & \cellcolor{gray!27}0.78 & \cellcolor{gray!22}0.83 & \cellcolor{gray!36}0.80 & \cellcolor{gray!27}1.11 & \cellcolor{gray!36}1.19 & \cellcolor{gray!36}1.19 & \cellcolor{gray!36}1.14 \\
+\textbf{Lasso} & \cellcolor{gray!13}1.88 & \cellcolor{gray!18}1.61 & \cellcolor{gray!18}1.82 & \cellcolor{gray!31}2.95 & \cellcolor{gray!13}1.45 & \cellcolor{gray!31}1.81 & \cellcolor{gray!31}2.04 & \cellcolor{gray!31}1.89 \\
+\textbf{Elastic Net} & \cellcolor{gray!18}1.82 & \cellcolor{gray!13}1.64 & \cellcolor{gray!13}1.85 & \cellcolor{gray!27}3.00 & \cellcolor{gray!18}1.44 & \cellcolor{gray!27}1.82 & \cellcolor{gray!27}2.07 & \cellcolor{gray!27}1.94 \\
+\textbf{Truncted Normal} & \cellcolor{gray!31}0.65 & \cellcolor{gray!31}0.40 & \cellcolor{gray!31}0.31 & \cellcolor{gray!40}0.30 & \cellcolor{gray!36}0.99 & \cellcolor{gray!40}0.95 & \cellcolor{gray!40}0.87 & \cellcolor{gray!40}0.74 \\
+\textbf{LW} & \cellcolor{gray!27}1.36 & \cellcolor{gray!9}2.51 & \cellcolor{gray!4}3.00 & \cellcolor{gray!18}6.21 & \cellcolor{gray!9}1.62 & \cellcolor{gray!18}2.27 & \cellcolor{gray!18}2.45 & \cellcolor{gray!18}2.20 \\
+\textbf{FM} & \cellcolor{gray!9}1.99 & \cellcolor{gray!36}0.13 & \cellcolor{gray!43}\textbf{0.03} & \cellcolor{gray!0}nan & \cellcolor{gray!31}1.03 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{TZ} & \cellcolor{gray!22}1.41 & \cellcolor{gray!22}0.85 & \cellcolor{gray!27}0.81 & \cellcolor{gray!0}nan & \cellcolor{gray!22}1.30 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{FF} & \cellcolor{gray!0}2.40 & \cellcolor{gray!4}2.63 & \cellcolor{gray!9}2.93 & \cellcolor{gray!22}5.57 & \cellcolor{gray!4}1.65 & \cellcolor{gray!22}2.16 & \cellcolor{gray!22}2.17 & \cellcolor{gray!22}2.06 \\
+\bottomrule
+\end{tabularx}
+\vspace{0.3em}
+{\footnotesize \textit{Note:} The table reports out-of-sample mean results (in percent) for the mean absolute weight deviations for various data sets in a rolling window one-step ahead long-short portfolio optimization. For all datasets, portfolio returns are net of transaction costs 50 basis points per trade. The bold number in each column indices the smallest value in each column. For the Refinitive data, we follow the methodology of \citet{denard2022} in section 5.2 on page 7, and choose the assets with the highest market capitalization while excluding assets with pairwise correlations higher than 0.95. }}
+\end{table}

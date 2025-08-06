@@ -180,7 +180,8 @@ def hierarchical_ridge(y,X,B):
 
     return beta, sigma, tau
 
-def bayesian_lasso(y,X,B, r=0.0001, delta=0.0001):
+
+def bayesian_lasso(y, X, B, r=0.1, delta=0.0001):
     '''
     Parameters
     ----------
@@ -205,19 +206,19 @@ def bayesian_lasso(y,X,B, r=0.0001, delta=0.0001):
     # MCMC Set-Up
     _burnin = math.ceil(0.3 * B)
     _ndraw = B + _burnin
-    beta = np.zeros([B,N])
-    sigma = np.zeros([B,1])
-    invtau2 = np.zeros([B,N])
-    lambda_out = np.zeros([B,1])
+    beta = np.zeros([B, N])
+    sigma = np.zeros([B, 1])
+    invtau2 = np.zeros([B, N])
+    lambda_out = np.zeros([B, 1])
 
     # OLS quantities
     _betaOLS = np.linalg.pinv(X.T @ X) @ (X.T @ y)
     _SSE = (y-X @ _betaOLS).T @ (y-X @ _betaOLS)
-    _sigmaOLS = _SSE/(T-N*(N<T))
+    _sigmaOLS = _SSE/(T-N*(N < T))
 
     # Parameter values for first Gibbs sammple step
-    sigmaD = 1*(T<N) + _sigmaOLS*(T>N)
-    invtau2D = (1 / np.square(_betaOLS).T) * (T>N)+ 1 * (T<=N)
+    sigmaD = 1*(T < N) + _sigmaOLS * (T > N)
+    invtau2D = (1 / np.square(_betaOLS).T) * (T > N) + 1 * (T <= N)
     lambdaD = 0.1
 
     # Further hyperparameters
@@ -403,6 +404,7 @@ def truncted_normal(y,X,B, lower_bound, upper_bound):
         # (1) Draw gamma=H*beta
         omega = np.linalg.pinv(X.T @ X) * sigmaD + np.eye(N)
         gammabar = np.linalg.pinv(omega.T) @ (X.T @ y/sigmaD)
+
         for j in range(N):
             whole_vec = omega[j,:].T * (gammaD-gammabar)
             points = np.where(index_vec!=j)[0][0]
@@ -413,6 +415,7 @@ def truncted_normal(y,X,B, lower_bound, upper_bound):
             gamma_draw = truncnorm.rvs(a[j], b[j]) * np.sqrt(var_part) + mean_part
             gammaD[j] = gamma_draw
 
+        gammaD = np.nan_to_num(gammaD, nan=0.0)
         betaD = np.linalg.pinv(H) @ gammaD
         # (2) Draw sigma^2
         s = (y-X @ gammaD).T @ (y-X @ gammaD)/2
@@ -570,7 +573,7 @@ def frahm_memmel(returns, kappa_method):
 
     # Dimensions
     T, N = returns.shape
-    
+
     if T <= N:
         return np.full((N,), np.nan)
 
@@ -604,35 +607,44 @@ def tou_zhou(returns, gamma):
     Returns
     -------
     weights : array, float
-        (1 x N) vector of GMV portfolio weights
+        (1 x N) vector of portfolio weights
     Reference
     ---------
-    Tu, J. and G. Zhou (2011): Markowitz meets Talmud: A combination of sophisticated and naive
-    diversification strategies, Journal of Financial Economics, 99, 204-215.
+    Tu, J. and G. Zhou (2011): Markowitz meets Talmud: A combination of
+    sophisticated and naive diversification strategies,
+    Journal of Financial Economics, 99, 204-215.
     '''
     # Array structure
     returns = np.array(returns)
 
     # Dimensions
     T, N = returns.shape
-    
-    if T <= N:
+
+    if T <= N+4:
         return np.full((N,), np.nan)
 
     # Parameter Calculations
     Sigma = np.cov(returns.T)
     invSigma = np.linalg.pinv(Sigma)
-    w_gmvp = invSigma @ np.ones([N,1]) / (np.ones([N,1]).T @ invSigma @ np.ones([N,1]))
-    mu_min = np.mean(returns, axis=0) @ w_gmvp
-    hat_psi2 = (np.mean(returns, axis=0)-mu_min) @ invSigma @ (np.mean(returns, axis=0)-mu_min).T
-    hat_psi2a = ((T-N-1)*hat_psi2-(N-1))/T+(2*np.power(hat_psi2,(N-1)/2) * np.power(1+hat_psi2,-(T-2)/2))/(T*betainc((N-1)/2,(T-N+1)/2,hat_psi2/(1+hat_psi2)))
+    iota = np.ones([N, 1])
+    w_gmvp = invSigma @ iota / (iota.T @ invSigma @ iota)
+    w_e = iota / N
+    mu = np.mean(returns, axis=0)
+    hat_psi2 = mu @ invSigma @ mu.T
+    hat_psi2a = (((T-N-2)*hat_psi2-N)/T+(2*np.power(hat_psi2, N/2)
+                                         * np.power(1+hat_psi2, -(T-2)/2))
+                 / (T*betainc(N/2, (T-N)/2, hat_psi2/(1+hat_psi2)))
+                 )
     c1 = (T-2) * (T-N-2) / ((T-N-1) * (T-N-4))
-    hat_pi1 = np.ones([1,N])/N  @ invSigma @ np.ones([N,1])/N - 2/gamma * np.ones([1,N])/N @ np.mean(returns, axis=0).T + hat_psi2a/np.square(gamma)
+    hat_pi1 = (w_e.T @ Sigma @ w_e - 2/gamma * w_e.T @ mu.T
+               + hat_psi2a/np.square(gamma)
+               )
     hat_pi2 = hat_psi2a*(c1-1)/(gamma**2)+c1/(gamma**2)*N/T
     hat_delta = hat_pi1/(hat_pi1 + hat_pi2)
 
     # Portfolio weights
-    weights0 = (1-hat_delta) * np.ones([1,N])/N + hat_delta * invSigma @ np.mean(returns, axis=0)/gamma
+    w_mv = invSigma @ np.mean(returns, axis=0)/gamma
+    weights0 = (1-hat_delta) * w_e.T + hat_delta * w_gmvp.T
     weights = weights0.squeeze()[:, np.newaxis]
 
     return weights

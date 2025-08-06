@@ -1,0 +1,29 @@
+\begin{table}[p]
+\fontsize{9}{14}\selectfont{
+\caption{Out-of-sample mean results (in percent) for the maximum draw down relative to the 1/N portfolio using various data sets with h = 60 months estimation window size for a long-short portfolio with rebalancing after 1 period. The evaluation sample is from January 1990 to December 2018.
+\vspace{0.3em}}
+\label{tab:ls_60_1990_2018_MDD}
+\begin{tabularx}{\textwidth}{Xcccccccc}
+\toprule
+Vendor & \multicolumn{4}{c}{\textbf{Fama French}} & \multicolumn{4}{c}{\textbf{Refinitiv}} \\
+\cmidrule(r{0.1em}l){2-5}\cmidrule(r{0.1em}l){6-9}
+Dataset & \multicolumn{3}{c}{\textbf{Industry}} & \textbf{Size to B/M} & \multicolumn{4}{c}{\textbf{NYSE Exchange}} \\
+\cmidrule(r{0.1em}l){2-4}\cmidrule(r{0.1em}l){5-8}
+Asset Universe & \textbf{5} & \textbf{30} & \textbf{49} & \textbf{100} & \textbf{25} & \textbf{100} & \textbf{250} & \textbf{500} \\
+\midrule
+\textbf{1/N} & \cellcolor{gray!0}47.1 & \cellcolor{gray!4}52.8 & \cellcolor{gray!11}52.3 & \cellcolor{gray!36}54.8 & \cellcolor{gray!9}48.5 & \cellcolor{gray!18}54.1 & \cellcolor{gray!13}52.3 & \cellcolor{gray!13}51.6 \\
+\textbf{GMVP} & \cellcolor{gray!45}\textbf{34.6} & \cellcolor{gray!0}72.9 & \cellcolor{gray!0}100.0 & \cellcolor{gray!13}82.9 & \cellcolor{gray!0}71.9 & \cellcolor{gray!13}85.3 & \cellcolor{gray!40}41.2 & \cellcolor{gray!45}\textbf{37.8} \\
+\textbf{Empirical Bayes} & \cellcolor{gray!4}45.5 & \cellcolor{gray!9}52.4 & \cellcolor{gray!18}52.3 & \cellcolor{gray!0}nan & \cellcolor{gray!13}48.3 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{Ridge} & \cellcolor{gray!9}43.5 & \cellcolor{gray!27}45.8 & \cellcolor{gray!27}45.3 & \cellcolor{gray!45}\textbf{53.2} & \cellcolor{gray!31}42.2 & \cellcolor{gray!27}44.3 & \cellcolor{gray!31}43.7 & \cellcolor{gray!31}42.4 \\
+\textbf{Lasso} & \cellcolor{gray!22}41.0 & \cellcolor{gray!31}39.0 & \cellcolor{gray!40}40.4 & \cellcolor{gray!27}59.5 & \cellcolor{gray!40}38.0 & \cellcolor{gray!45}\textbf{31.0} & \cellcolor{gray!27}46.8 & \cellcolor{gray!22}50.2 \\
+\textbf{Elastic Net} & \cellcolor{gray!18}41.1 & \cellcolor{gray!36}38.5 & \cellcolor{gray!45}\textbf{40.1} & \cellcolor{gray!22}60.0 & \cellcolor{gray!36}39.0 & \cellcolor{gray!40}31.4 & \cellcolor{gray!22}47.0 & \cellcolor{gray!18}51.2 \\
+\textbf{Truncted Normal} & \cellcolor{gray!13}41.9 & \cellcolor{gray!18}50.9 & \cellcolor{gray!22}51.9 & \cellcolor{gray!40}54.6 & \cellcolor{gray!18}47.2 & \cellcolor{gray!22}50.8 & \cellcolor{gray!18}49.9 & \cellcolor{gray!27}48.8 \\
+\textbf{LW} & \cellcolor{gray!31}39.3 & \cellcolor{gray!40}38.4 & \cellcolor{gray!36}41.5 & \cellcolor{gray!31}56.7 & \cellcolor{gray!27}44.1 & \cellcolor{gray!36}35.9 & \cellcolor{gray!36}41.7 & \cellcolor{gray!36}39.6 \\
+\textbf{FM} & \cellcolor{gray!40}35.8 & \cellcolor{gray!13}51.6 & \cellcolor{gray!11}52.3 & \cellcolor{gray!0}nan & \cellcolor{gray!22}46.3 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{TZ} & \cellcolor{gray!27}40.7 & \cellcolor{gray!22}50.6 & \cellcolor{gray!4}53.2 & \cellcolor{gray!0}nan & \cellcolor{gray!4}55.9 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{FF} & \cellcolor{gray!36}36.5 & \cellcolor{gray!45}\textbf{37.3} & \cellcolor{gray!31}42.3 & \cellcolor{gray!18}60.9 & \cellcolor{gray!45}\textbf{37.4} & \cellcolor{gray!31}38.0 & \cellcolor{gray!45}\textbf{36.1} & \cellcolor{gray!40}39.1 \\
+\bottomrule
+\end{tabularx}
+\vspace{0.3em}
+{\footnotesize \textit{Note:} The table reports out-of-sample mean results (in percent) for the maximum draw down for various data sets in a rolling window one-step ahead long-short portfolio optimization. For all datasets, portfolio returns are net of transaction costs 50 basis points per trade. The bold number in each column indices the smallest value in each column. For the Refinitive data, we follow the methodology of \citet{denard2022} in section 5.2 on page 7, and choose the assets with the highest market capitalization while excluding assets with pairwise correlations higher than 0.95. }}
+\end{table}

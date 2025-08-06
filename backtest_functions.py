@@ -25,7 +25,6 @@ import pickle
 import seaborn as sns
 
 
-
 def last_day_of_month(date):
     if date.month == 12:
         return date.replace(day=31)
@@ -43,14 +42,16 @@ class PortfolioBacktest(object):
     '''
     PortfolioBacktest: Calculate backtest for strategies
     '''
+
     def __init__(self):
         self.data = dict()
         self.settings = dict()
+
     def get_data(self):
         '''
         get_data: clean and adjust chosen data
         '''
-            
+
         # return data
         file_name = os.path.join(self.settings['data_path'],
                                  f"{self.settings['data_set']}.pkl")
@@ -70,19 +71,19 @@ class PortfolioBacktest(object):
                 return_data = return_data.reset_index()
                 return_data['Date'] = return_data['Date'].apply(last_day_of_month)
                 return_data = return_data.set_index('Date')
-                
+
                 # clean data
                 return_data[return_data<=-99.99] = 0 # cut NaNs
                 return_data = return_data/100 # decimal returns
-                
+
                 check_data = pd.DataFrame(True, index=return_data.index, columns=return_data.columns)
-                
+
             else:
                 number_assets = int(self.settings['data_set'].split('_')[0])
                 dropbox_link = 'https://www.dropbox.com/scl/fi/fmrtpkjzk8dzz10xspg26/DatastreamData.xlsx?rlkey=2qx99p4r9kwzlddonebsx8hh0&dl=1'
                 price_data = pd.read_excel(
                     dropbox_link,
-                    sheet_name=f'{self.settings['data_set'].split('_')[-1]}_MV_RI',
+                    sheet_name=f"{self.settings['data_set'].split('_')[-1]}_MV_RI",
                     engine='openpyxl', index_col=0
                     )
                 # tidy dataframe
@@ -104,7 +105,7 @@ class PortfolioBacktest(object):
                                #         .rank(ascending=False)
                                #         )
                                )
-                
+
                 return_data = (melted_data
                                .query('type == "total_return"')
                                .pivot(index='date', columns='company', values='value')
@@ -125,12 +126,12 @@ class PortfolioBacktest(object):
                 mv_data.index = mv_data.index.where(mv_data.index.is_month_end, mv_data.index + pd.offsets.MonthEnd(0))
                 return_data.index.name = 'Date'
                 return_data.columns.name = None
-                
+
                 # Check assets availability
                 check_data_backward = return_data.rolling(self.settings['window']+1, closed='left').count() == self.settings['window']+1
                 check_data_forward = return_data.shift(-self.settings['forward_window']-1).rolling(self.settings['forward_window'], closed='left').count() == self.settings['forward_window']
                 check_availability = check_data_backward * check_data_forward
-                
+
                 check_availability = check_availability.reindex(mv_data.index).fillna(False)
 
                 # Function to rank values based on the mask
@@ -143,19 +144,19 @@ class PortfolioBacktest(object):
                     result = np.full(values.shape, np.nan)
                     result[mask_row] = ranked
                     return result
-                
+
                 # Apply the ranking function row-wise without looping explicitly
                 mv_rank_data = mv_data.apply(lambda row: rank_row(row.values, check_availability.loc[row.name].values), axis=1)
-                
+
                 # Convert back to a numpy array if needed
                 mv_rank_data = pd.DataFrame(np.array(mv_rank_data.tolist()).tolist(), columns=mv_data.columns, index=mv_data.index)
-               
+
                 # Check correlations and market value
                 all_correlations=return_data.rolling(self.settings['window']).corr()
                 check_data_correlation = (all_correlations >= self.settings['correlation_threshold']) & (all_correlations < 0.99)
                 correlation_indices = check_data_correlation.stack()[check_data_correlation.stack() == True].index
                 correlation_indices.names = ['date', 'company1', 'company2']
-                
+
                 # check something
                 # correlation_indices_test = pd.DataFrame(index=correlation_indices).reset_index(drop=False)
                 # correlation_indices_test['rank1'] = 0
@@ -219,12 +220,12 @@ class PortfolioBacktest(object):
         self.data['index'] = pd.DataFrame(return_data.mean(axis=1),columns=['Index'])
         self.data['dates'] = return_data.index
         return
-    def calc_allocation(self, returns, opt_method, factors):
+    def calc_allocation(self, returns_all, opt_method, factors):
         ''' calc_allocation: Specify minimization algorithm and calculate weights
         - initial: initial weight guess
         '''
         # Check if data is complete (only use columns where there is actual data)
-        returns = returns.loc[:, (returns.sum(axis=0) !=0)].copy()
+        returns = returns_all.loc[:, (returns_all.sum(axis=0) !=0)].copy()
         number_simulations = self.settings['number_simulations']
 
         if opt_method == '1/N': # 1/N portfolio
@@ -235,13 +236,10 @@ class PortfolioBacktest(object):
         if opt_method == 'GMVP': # GMVP (no constraints)
 
             strategy_name = opt_method
-            y = np.array(returns.iloc[:,0])
+            y = np.array(returns.iloc[:, 0])
             x = np.array(-returns.iloc[:,1:].subtract(y, axis=0))
             x = np.insert(x,0,1,axis=1)
-            if x.shape[0] > x.shape[1]:
-                weights = np.linalg.inv(x.T.dot(x)).dot(x.T.dot(y))
-            else:
-                weights = np.full((x.shape[1],), np.nan)
+            weights = np.linalg.pinv(x.T.dot(x)).dot(x.T.dot(y))
             final_weights = np.append(1-weights.sum(),weights[1:]).round(8)
 
         if opt_method == 'Ridge':  # GMVP with Ridge tau=T/N
@@ -265,53 +263,54 @@ class PortfolioBacktest(object):
             X = np.repeat(y,N,axis=1) - np.array(returns)
             X = np.insert(X,0,1,axis=1)
             tau = T/N/100 #1/(T*N/100)#T/N
-            if X.shape[0] > X.shape[1]:
-                weights_tilde = (tau/(tau+1)) * np.linalg.pinv(X.T.dot(X)).dot(X.T.dot(y))
-            else:
-                weights_tilde = np.full((X.shape[1],), np.nan)
+            # if X.shape[0] > X.shape[1]:
+            #     weights_tilde = (tau/(tau+1)) * np.linalg.pinv(X.T.dot(X)).dot(X.T.dot(y))
+            # else:
+            #     weights_tilde = np.full((X.shape[1],), np.nan)
+            weights_tilde = (tau/(tau+1)) * np.linalg.pinv(X.T.dot(X)).dot(X.T.dot(y))
             final_weights = weights_tilde[1:] + (1/N) * (1 - weights_tilde[1:].sum())
 
-        elif opt_method == 'HierRidge': # Hierarchical Ridge
+        elif opt_method == 'HierRidge':  # Hierarchical Ridge
 
             strategy_name = 'Hierarchical Ridge'
             N = returns.shape[1]
-            w_0 = np.ones([N,1]) / N
+            w_0 = np.ones([N, 1]) / N
             y = np.matmul(np.array(returns), w_0)
-            X = np.repeat(y,N,axis=1) - np.array(returns)
-            X = np.insert(X,0,1,axis=1)
+            X = np.repeat(y, N, axis=1) - np.array(returns)
+            X = np.insert(X, 0, 1, axis=1)
 
             beta, sigma, tau = hierarchical_ridge(y, X, number_simulations)
             weights_tilde = beta.mean(axis=0)
             final_weights = weights_tilde[1:] + (1/N) * (1 - weights_tilde[1:].sum())
 
-        elif opt_method == 'Lasso': # Lasso
+        elif opt_method == 'Lasso':  # Lasso
 
             strategy_name = 'Lasso'
             N = returns.shape[1]
-            w_0 = np.ones([N,1]) / N
+            w_0 = np.ones([N, 1]) / N
             y = np.matmul(np.array(returns), w_0)
-            X = np.repeat(y,N,axis=1) - np.array(returns)
-            X = np.insert(X,0,1,axis=1)
-            
+            X = np.repeat(y, N, axis=1) - np.array(returns)
+            X = np.insert(X, 0, 1, axis=1)
+
             weights_tilde = LassoCV().fit(X, y).coef_
-            
+
             final_weights = weights_tilde[1:] + (1/N) * (1 - weights_tilde[1:].sum())
-        
-        elif opt_method == 'BayLasso': # Bayesian Lasso
+
+        elif opt_method == 'BayLasso':  # Bayesian Lasso
 
             strategy_name = 'Bayesian Lasso'
             N = returns.shape[1]
-            w_0 = np.ones([N,1]) / N
+            w_0 = np.ones([N, 1]) / N
             y = np.matmul(np.array(returns), w_0)
-            X = np.repeat(y,N,axis=1) - np.array(returns)
-            X = np.insert(X,0,1,axis=1)
-            
+            X = np.repeat(y, N, axis=1) - np.array(returns)
+            X = np.insert(X, 0, 1, axis=1)
+
             beta, sigma, invtau2, lambda_out = bayesian_lasso(y, X, number_simulations)
             weights_tilde = beta.mean(axis=0)
-            
+
             final_weights = weights_tilde[1:] + (1/N) * (1 - weights_tilde[1:].sum())
 
-        elif opt_method == 'ElasticNet': # Elastic Net
+        elif opt_method == 'ElasticNet':  # Elastic Net
 
             strategy_name = 'Elastic Net'
             N = returns.shape[1]
@@ -324,7 +323,7 @@ class PortfolioBacktest(object):
             
             final_weights = weights_tilde[1:] + (1/N) * (1 - weights_tilde[1:].sum())
             
-        elif opt_method == 'BayElasticNet': # Bayesian Elastic Net
+        elif opt_method == 'BayElasticNet':  # Bayesian Elastic Net
 
             strategy_name = 'Bayesian Elastic Net'
             N = returns.shape[1]
@@ -339,34 +338,47 @@ class PortfolioBacktest(object):
             final_weights = weights_tilde[1:] + (1/N) * (1 - weights_tilde[1:].sum())
 
         elif opt_method == 'Truncted Normal': # Truncted Normal
-
+        
+            ###test for now
             strategy_name = opt_method
-            N = returns.shape[1]
-            w_0 = np.ones([N,1]) / N
-            y = np.matmul(np.array(returns), w_0)
-            X = np.repeat(y,N,axis=1) - np.array(returns)
-            X = np.insert(X,0,1,axis=1)
+            y = np.array(returns.iloc[:, 0])
+            x = np.array(-returns.iloc[:,1:].subtract(y, axis=0))
+            x = np.insert(x,0,1,axis=1)
+            weights = np.linalg.pinv(x.T.dot(x)).dot(x.T.dot(y))
+            final_weights = np.append(1-weights.sum(),weights[1:]).round(8)
+            
+            final_weights = ((final_weights - final_weights.min())
+                             / (final_weights.max() - final_weights.min())
+                             )
+        
 
-            beta, sigma = truncted_normal(y, X, number_simulations, -1/N, 1/N)
-            weights_tilde = beta.mean(axis=0)
-            final_weights = weights_tilde[1:] + (1/N) * (1 - weights_tilde[1:].sum())
+            # strategy_name = opt_method
+            # N = returns.shape[1]
+            # w_0 = np.ones([N,1]) / N
+            # y = np.matmul(np.array(returns), w_0)
+            # X = np.repeat(y,N,axis=1) - np.array(returns)
+            # X = np.insert(X,0,1,axis=1)
 
-        elif opt_method == 'LW': # Ledoit & Wolf
+            # beta, sigma = truncted_normal(y, X, number_simulations, -1/N, 1/N)
+            # weights_tilde = beta.mean(axis=0)
+            # final_weights = weights_tilde[1:] + (1/N) * (1 - weights_tilde[1:].sum())
+
+        elif opt_method == 'LW':  # Ledoit & Wolf
 
             strategy_name = 'LW'
             weights, Sigma = ledoit_wolf(returns, 2)
             final_weights = weights
 
-        elif opt_method == 'FM': # Frahm & Memmel
+        elif opt_method == 'FM':  # Frahm & Memmel
 
             strategy_name = 'FM'
             weights = frahm_memmel(returns, 2)
             final_weights = weights
 
-        elif opt_method == 'TZ': # Tou & Zhou
+        elif opt_method == 'TZ':  # Tou & Zhou
 
             strategy_name = 'TZ'
-            weights = tou_zhou(returns, 10)
+            weights = tou_zhou(returns, 1)
             final_weights = weights
 
         elif opt_method == 'FF': # Fama French
@@ -518,8 +530,7 @@ class PortfolioBacktest(object):
         returns_all_ni = returns_all.copy().reset_index()
         # for i in enumerate(dates_reb):
         #     print(i)
-        
-        
+
         for i in range(0, len(dates_reb), 1):
             # First get the timing right
             tmp_date = str(dates_reb[i]).split()[0]
@@ -537,6 +548,10 @@ class PortfolioBacktest(object):
                 tmp_returns = returns_all.iloc[:end_window, :][valid_assets]
                 tmp_factor_returns = factor_returns.iloc[:end_window, :]
             allocation_dates.append(tmp_date)
+            
+            if tmp_returns.index[-1] == pd.to_datetime('2019-06-30'):
+                print("test")
+            
             hist_alloc_tmp = self.calc_allocation(tmp_returns, opt_method, tmp_factor_returns)
             historical_allocation.append(hist_alloc_tmp)
         back_alloc = pd.concat(historical_allocation[0:], keys=allocation_dates[0:])
@@ -594,7 +609,6 @@ class PortfolioBacktest(object):
             returns[strategy_name] = all_returns[list(allocations[strategy_name].columns)].loc[self.settings['start_date']:self.settings['end_date'], :]
             weight_change = abs(allocations[strategy_name]-allocations[strategy_name].shift()).sum(axis=1)
             costs = weight_change * self.settings['costs']
-            
             skip_na = False
             if allocations[strategy_name].isna().sum(axis=1).max() < allocations[strategy_name].shape[1]:
                 skip_na = True
@@ -607,6 +621,11 @@ class PortfolioBacktest(object):
             annuals[strategy_name] = round(annuals[strategy_name].astype(float),self.settings['round_decimals'])
 
             print('Allocation for ' + strategy_name + ' is complete.')
+
+        if self.settings['normalized_returns']:
+            performances['returns'] *= (performances['returns']['1/N'].std()
+                                        / performances['returns'].std()
+                                        )
 
         performances['AR'] = performances['returns'].rolling(window=window, min_periods=1).mean() * 100 * length_year
         performances['SD'] = performances['returns'].rolling(window=window, min_periods=1).std() * 100 * np.sqrt(length_year)

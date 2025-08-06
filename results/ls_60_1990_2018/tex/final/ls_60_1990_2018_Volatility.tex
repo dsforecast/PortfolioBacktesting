@@ -1,0 +1,29 @@
+\begin{table}[p]
+\fontsize{9}{14}\selectfont{
+\caption{Out-of-sample mean results (in percent) for the portfolio volatility relative to the 1/N portfolio using various data sets with h = 60 months estimation window size for a long-short portfolio with rebalancing after 1 period. The evaluation sample is from January 1990 to December 2018.
+\vspace{0.3em}}
+\label{tab:ls_60_1990_2018_Volatility}
+\begin{tabularx}{\textwidth}{Xcccccccc}
+\toprule
+Vendor & \multicolumn{4}{c}{\textbf{Fama French}} & \multicolumn{4}{c}{\textbf{Refinitiv}} \\
+\cmidrule(r{0.1em}l){2-5}\cmidrule(r{0.1em}l){6-9}
+Dataset & \multicolumn{3}{c}{\textbf{Industry}} & \textbf{Size to B/M} & \multicolumn{4}{c}{\textbf{NYSE Exchange}} \\
+\cmidrule(r{0.1em}l){2-4}\cmidrule(r{0.1em}l){5-8}
+Asset Universe & \textbf{5} & \textbf{30} & \textbf{49} & \textbf{100} & \textbf{25} & \textbf{100} & \textbf{250} & \textbf{500} \\
+\midrule
+\textbf{1/N} & \cellcolor{gray!4}13.9 & \cellcolor{gray!9}15.0 & \cellcolor{gray!11}15.1 & \cellcolor{gray!18}16.8 & \cellcolor{gray!9}13.3 & \cellcolor{gray!18}14.3 & \cellcolor{gray!13}14.3 & \cellcolor{gray!13}14.5 \\
+\textbf{GMVP} & \cellcolor{gray!36}11.8 & \cellcolor{gray!4}15.3 & \cellcolor{gray!0}23.7 & \cellcolor{gray!13}16.8 & \cellcolor{gray!0}15.6 & \cellcolor{gray!13}16.9 & \cellcolor{gray!36}10.3 & \cellcolor{gray!45}\textbf{8.8} \\
+\textbf{Empirical Bayes} & \cellcolor{gray!9}13.3 & \cellcolor{gray!13}14.8 & \cellcolor{gray!18}15.0 & \cellcolor{gray!0}nan & \cellcolor{gray!13}13.2 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{Ridge} & \cellcolor{gray!18}12.5 & \cellcolor{gray!27}11.9 & \cellcolor{gray!27}11.9 & \cellcolor{gray!27}14.5 & \cellcolor{gray!45}\textbf{11.8} & \cellcolor{gray!31}11.3 & \cellcolor{gray!31}10.8 & \cellcolor{gray!31}10.4 \\
+\textbf{Lasso} & \cellcolor{gray!27}11.9 & \cellcolor{gray!31}11.6 & \cellcolor{gray!31}11.6 & \cellcolor{gray!31}13.2 & \cellcolor{gray!40}12.1 & \cellcolor{gray!40}11.1 & \cellcolor{gray!27}11.2 & \cellcolor{gray!22}11.3 \\
+\textbf{Elastic Net} & \cellcolor{gray!31}11.9 & \cellcolor{gray!36}11.5 & \cellcolor{gray!36}11.6 & \cellcolor{gray!36}13.2 & \cellcolor{gray!36}12.1 & \cellcolor{gray!45}\textbf{11.0} & \cellcolor{gray!22}11.3 & \cellcolor{gray!27}11.3 \\
+\textbf{Truncted Normal} & \cellcolor{gray!13}12.6 & \cellcolor{gray!22}14.3 & \cellcolor{gray!22}14.7 & \cellcolor{gray!22}16.5 & \cellcolor{gray!27}12.6 & \cellcolor{gray!22}13.7 & \cellcolor{gray!18}13.6 & \cellcolor{gray!18}13.6 \\
+\textbf{LW} & \cellcolor{gray!40}11.7 & \cellcolor{gray!40}11.4 & \cellcolor{gray!45}\textbf{11.1} & \cellcolor{gray!40}12.9 & \cellcolor{gray!31}12.4 & \cellcolor{gray!36}11.2 & \cellcolor{gray!45}\textbf{10.0} & \cellcolor{gray!40}8.9 \\
+\textbf{FM} & \cellcolor{gray!45}\textbf{11.7} & \cellcolor{gray!18}14.6 & \cellcolor{gray!11}15.1 & \cellcolor{gray!0}nan & \cellcolor{gray!18}12.7 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{TZ} & \cellcolor{gray!0}17.0 & \cellcolor{gray!0}15.6 & \cellcolor{gray!4}15.6 & \cellcolor{gray!0}nan & \cellcolor{gray!4}14.4 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{FF} & \cellcolor{gray!22}12.1 & \cellcolor{gray!45}\textbf{11.3} & \cellcolor{gray!40}11.2 & \cellcolor{gray!45}\textbf{12.5} & \cellcolor{gray!22}12.7 & \cellcolor{gray!27}11.4 & \cellcolor{gray!40}10.1 & \cellcolor{gray!36}9.2 \\
+\bottomrule
+\end{tabularx}
+\vspace{0.3em}
+{\footnotesize \textit{Note:} The table reports out-of-sample mean results (in percent) for the portfolio volatility for various data sets in a rolling window one-step ahead long-short portfolio optimization. For all datasets, portfolio returns are net of transaction costs 50 basis points per trade. The bold number in each column indices the smallest value in each column. For the Refinitive data, we follow the methodology of \citet{denard2022} in section 5.2 on page 7, and choose the assets with the highest market capitalization while excluding assets with pairwise correlations higher than 0.95. To test the difference in standard deviations, we use a bootstrap approach similar to the methodology described by \citet{ledoit2008}. One/two/three asterisks denote rejection of the null hypothesis of a smaller or equal standard deviation than 1/N at the ten/five/one percent test level.}}
+\end{table}

@@ -1,0 +1,29 @@
+\begin{table}[p]
+\fontsize{9}{14}\selectfont{
+\caption{Out-of-sample mean results  for the Sharpe ratio relative to the 1/N portfolio using various data sets with h = 60 months estimation window size for a long-short portfolio with rebalancing after 1 period. The evaluation sample is from January 1990 to December 2018.
+\vspace{0.0em}}
+\label{tab:ls_60_1990_2018_Sharpe}
+\begin{tabularx}{\textwidth}{Xcccccccc}
+\toprule
+\textbf{Vendor} & \multicolumn{4}{c}{\textbf{Fama French}} & \multicolumn{4}{c}{\textbf{Refinitiv}} \\
+\cmidrule(r{0.1em}l){2-5}\cmidrule(r{0.1em}l){6-9}
+\textbf{Dataset} & \multicolumn{3}{c}{\textbf{Industry}} & \textbf{Size to B/M} & \multicolumn{4}{c}{\textbf{NYSE Exchange}} \\
+\cmidrule(r{0.1em}l){2-4}\cmidrule(r{0.1em}l){5-5}\cmidrule(r{0.1em}l){6-9}
+\textbf{Asset Universe} & \textbf{5} & \textbf{30} & \textbf{49} & \textbf{100} & \textbf{25} & \textbf{100} & \textbf{250} & \textbf{500} \\
+\midrule
+\textbf{1/N} & \cellcolor{gray!27}0.80 & \cellcolor{gray!40}0.71 & \cellcolor{gray!38}0.72 & \cellcolor{gray!36}0.71 & \cellcolor{gray!40}0.66 & \cellcolor{gray!36}0.66 & \cellcolor{gray!31}0.77 & \cellcolor{gray!27}0.87 \\
+\textbf{GMVP} & \cellcolor{gray!13}0.69 & \cellcolor{gray!0}-0.11 & \cellcolor{gray!0}-1.14 & \cellcolor{gray!9}-0.13 & \cellcolor{gray!0}0.10 & \cellcolor{gray!9}-0.30 & \cellcolor{gray!18}0.38 & \cellcolor{gray!18}0.80 \\
+\textbf{Empirical Bayes} & \cellcolor{gray!31}0.81 & \cellcolor{gray!31}0.71 & \cellcolor{gray!31}0.71 & \cellcolor{gray!40}0.71 & \cellcolor{gray!36}0.66 & \cellcolor{gray!40}0.66 & \cellcolor{gray!36}0.77 & \cellcolor{gray!31}0.87 \\
+\textbf{Ridge} & \cellcolor{gray!45}\textbf{0.85} & \cellcolor{gray!45}\textbf{0.78} & \cellcolor{gray!45}\textbf{0.75} & \cellcolor{gray!45}\textbf{0.80} & \cellcolor{gray!45}\textbf{0.66} & \cellcolor{gray!45}\textbf{0.72} & \cellcolor{gray!45}\textbf{0.85} & \cellcolor{gray!45}\textbf{0.96} \\
+\textbf{Lasso} & \cellcolor{gray!9}0.68 & \cellcolor{gray!13}0.48 & \cellcolor{gray!18}0.43 & \cellcolor{gray!13}0.41 & \cellcolor{gray!13}0.49 & \cellcolor{gray!18}0.38 & \cellcolor{gray!9}0.28 & \cellcolor{gray!9}0.42 \\
+\textbf{Elastic Net} & \cellcolor{gray!18}0.69 & \cellcolor{gray!9}0.47 & \cellcolor{gray!13}0.43 & \cellcolor{gray!18}0.45 & \cellcolor{gray!18}0.51 & \cellcolor{gray!13}0.38 & \cellcolor{gray!13}0.31 & \cellcolor{gray!13}0.45 \\
+\textbf{Truncted Normal} & \cellcolor{gray!40}0.83 & \cellcolor{gray!27}0.70 & \cellcolor{gray!27}0.68 & \cellcolor{gray!31}0.71 & \cellcolor{gray!31}0.64 & \cellcolor{gray!31}0.65 & \cellcolor{gray!40}0.79 & \cellcolor{gray!40}0.90 \\
+\textbf{\citet{{ledoit2003}}} & \cellcolor{gray!36}0.81 & \cellcolor{gray!18}0.50 & \cellcolor{gray!9}0.37 & \cellcolor{gray!22}0.60 & \cellcolor{gray!4}0.46 & \cellcolor{gray!22}0.45 & \cellcolor{gray!22}0.55 & \cellcolor{gray!22}0.85 \\
+\textbf{\citet{{frahm2010b}}} & \cellcolor{gray!22}0.73 & \cellcolor{gray!36}0.71 & \cellcolor{gray!38}0.72 & \cellcolor{gray!0}nan & \cellcolor{gray!27}0.64 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{\citet{{tu2011}}} & \cellcolor{gray!4}0.64 & \cellcolor{gray!22}0.62 & \cellcolor{gray!22}0.58 & \cellcolor{gray!0}nan & \cellcolor{gray!9}0.49 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{\citet{{fama2015}}} & \cellcolor{gray!0}0.60 & \cellcolor{gray!4}0.45 & \cellcolor{gray!4}0.36 & \cellcolor{gray!27}0.61 & \cellcolor{gray!22}0.54 & \cellcolor{gray!27}0.52 & \cellcolor{gray!27}0.68 & \cellcolor{gray!36}0.87 \\
+\bottomrule
+\end{tabularx}
+\vspace{0.6em}\\
+{\footnotesize \textit{Note:} The table reports out-of-sample mean results (in percent) for the Sharpe ratio for various data sets in a rolling window one-step ahead long-short portfolio optimization. For all datasets, portfolio returns are net of transaction costs 50 basis points per trade. The bold number in each column indices the largest value in each column. For the Refinitive data, we follow the methodology of \citet{denard2022} in section 5.2 on page 7, and choose the assets with the highest market capitalization while excluding assets with pairwise correlations higher than 0.95. }}
+\end{table}

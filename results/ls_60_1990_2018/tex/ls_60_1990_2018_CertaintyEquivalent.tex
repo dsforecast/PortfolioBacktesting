@@ -1,0 +1,29 @@
+\begin{table}[p]
+\fontsize{9}{14}\selectfont{
+\caption{Out-of-sample mean results (in percent) for the certainty equivalent relative to the 1/N portfolio using various data sets with h = 60 months estimation window size for a long-short portfolio with rebalancing after 1 period. The evaluation sample is from January 1990 to December 2018.
+\vspace{0.0em}}
+\label{tab:ls_60_1990_2018_CertaintyEquivalent}
+\begin{tabularx}{\textwidth}{Xcccccccc}
+\toprule
+\textbf{Vendor} & \multicolumn{4}{c}{\textbf{Fama French}} & \multicolumn{4}{c}{\textbf{Refinitiv}} \\
+\cmidrule(r{0.1em}l){2-5}\cmidrule(r{0.1em}l){6-9}
+\textbf{Dataset} & \multicolumn{3}{c}{\textbf{Industry}} & \textbf{Size to B/M} & \multicolumn{4}{c}{\textbf{NYSE Exchange}} \\
+\cmidrule(r{0.1em}l){2-4}\cmidrule(r{0.1em}l){5-5}\cmidrule(r{0.1em}l){6-9}
+\textbf{Asset Universe} & \textbf{5} & \textbf{30} & \textbf{49} & \textbf{100} & \textbf{25} & \textbf{100} & \textbf{250} & \textbf{500} \\
+\midrule
+\textbf{1/N} & \cellcolor{gray!31}4.13 & \cellcolor{gray!40}3.16 & \cellcolor{gray!43}\textbf{3.34} & \cellcolor{gray!36}3.51 & \cellcolor{gray!45}\textbf{2.10} & \cellcolor{gray!36}2.28 & \cellcolor{gray!40}3.92 & \cellcolor{gray!36}5.33 \\
+\textbf{GMVP} & \cellcolor{gray!9}2.28 & \cellcolor{gray!0}-9.31 & \cellcolor{gray!0}-38.78 & \cellcolor{gray!9}-10.52 & \cellcolor{gray!0}-6.15 & \cellcolor{gray!9}-13.60 & \cellcolor{gray!18}-1.28 & \cellcolor{gray!18}2.63 \\
+\textbf{Empirical Bayes} & \cellcolor{gray!40}4.17 & \cellcolor{gray!36}3.10 & \cellcolor{gray!36}3.10 & \cellcolor{gray!40}3.53 & \cellcolor{gray!40}2.08 & \cellcolor{gray!40}2.29 & \cellcolor{gray!45}\textbf{3.93} & \cellcolor{gray!40}5.33 \\
+\textbf{Ridge} & \cellcolor{gray!45}\textbf{4.42} & \cellcolor{gray!45}\textbf{3.30} & \cellcolor{gray!31}2.98 & \cellcolor{gray!45}\textbf{4.41} & \cellcolor{gray!36}1.92 & \cellcolor{gray!45}\textbf{2.51} & \cellcolor{gray!31}3.75 & \cellcolor{gray!31}4.82 \\
+\textbf{Lasso} & \cellcolor{gray!4}2.17 & \cellcolor{gray!13}-0.22 & \cellcolor{gray!18}-0.76 & \cellcolor{gray!13}-1.19 & \cellcolor{gray!13}-0.14 & \cellcolor{gray!18}-1.29 & \cellcolor{gray!9}-2.49 & \cellcolor{gray!9}-0.91 \\
+\textbf{Elastic Net} & \cellcolor{gray!13}2.30 & \cellcolor{gray!9}-0.36 & \cellcolor{gray!13}-0.80 & \cellcolor{gray!18}-0.60 & \cellcolor{gray!18}0.10 & \cellcolor{gray!13}-1.36 & \cellcolor{gray!13}-2.20 & \cellcolor{gray!13}-0.62 \\
+\textbf{Truncted Normal} & \cellcolor{gray!36}4.15 & \cellcolor{gray!27}2.79 & \cellcolor{gray!27}2.66 & \cellcolor{gray!31}3.42 & \cellcolor{gray!27}1.80 & \cellcolor{gray!31}2.06 & \cellcolor{gray!36}3.88 & \cellcolor{gray!45}\textbf{5.47} \\
+\textbf{\citet{{ledoit2003}}} & \cellcolor{gray!27}3.69 & \cellcolor{gray!18}-0.00 & \cellcolor{gray!9}-1.46 & \cellcolor{gray!22}1.23 & \cellcolor{gray!4}-0.52 & \cellcolor{gray!22}-0.57 & \cellcolor{gray!22}0.54 & \cellcolor{gray!22}3.08 \\
+\textbf{\citet{{frahm2010b}}} & \cellcolor{gray!22}2.67 & \cellcolor{gray!31}3.07 & \cellcolor{gray!43}\textbf{3.34} & \cellcolor{gray!0}nan & \cellcolor{gray!31}1.81 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{\citet{{tu2011}}} & \cellcolor{gray!18}2.33 & \cellcolor{gray!22}1.84 & \cellcolor{gray!22}1.20 & \cellcolor{gray!0}nan & \cellcolor{gray!9}-0.18 & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan & \cellcolor{gray!0}nan \\
+\textbf{\citet{{fama2015}}} & \cellcolor{gray!0}1.24 & \cellcolor{gray!4}-0.59 & \cellcolor{gray!4}-1.55 & \cellcolor{gray!27}1.43 & \cellcolor{gray!22}0.51 & \cellcolor{gray!27}0.27 & \cellcolor{gray!27}1.87 & \cellcolor{gray!27}3.43 \\
+\bottomrule
+\end{tabularx}
+\vspace{0.6em}\\
+{\footnotesize \textit{Note:} The table reports out-of-sample mean results (in percent) for the certainty equivalent for various data sets in a rolling window one-step ahead long-short portfolio optimization. For all datasets, portfolio returns are net of transaction costs 50 basis points per trade. The bold number in each column indices the largest value in each column. For the Refinitive data, we follow the methodology of \citet{denard2022} in section 5.2 on page 7, and choose the assets with the highest market capitalization while excluding assets with pairwise correlations higher than 0.95. }}
+\end{table}
